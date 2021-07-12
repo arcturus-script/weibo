@@ -5,6 +5,6 @@
 3.本地上传zip包(先把github下载的代码文件取出来再打包zip)-执行方法 index.main  
 4.点击完成  
 5.函数管理-函数配置-编辑-环境变量  
-  - 使用企业微信推送的需要添加上AgentId、EnterpriseID、Secret、Touser  
-  - Account、UserName选填  
-  - sub必填-浏览器登陆微博后在cookie里面找到SUB=xxxx  
+  - 使用企业微信推送的需要添加上 AgentId、EnterpriseID、Secret、Touser  
+  - Touser、Account、UserName选填  
+  - sub 必填-浏览器登陆微博后在cookie里面找到SUB=xxxx  
