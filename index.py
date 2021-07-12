@@ -100,13 +100,15 @@ def start():
     if push_type == '1':
         # 使用企业微信推送
         content = '\n'.join(msg_list)
-        print(content)
-        print(type(content))
         # 企业微信消息推送所需参数
         AgentId = os.environ['AgentId']  # 应用ID
         Secret = os.environ['Secret']  # 应用密钥
         EnterpriseID = os.environ['EnterpriseID']  # 企业ID
-        Touser = os.environ['Touser']  # 用户ID
+        Touser = os.getenv('Touser', '')  # 用户ID
+        # 其他
+        UserName = os.getenv('UserName','')
+        Account = os.getenv('Account', '')
+        # 进行推送
         p = push.qiye_wechat(AgentId, Secret, EnterpriseID, Touser)
         p.push_text_message('微博超话', content)
     else:
