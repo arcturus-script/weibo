@@ -12,6 +12,7 @@ import os
 push_type = '1'
 
 
+
 # 获取超话列表
 def get_chaohua_List(Cookie):
     since_id = ''
@@ -21,9 +22,12 @@ def get_chaohua_List(Cookie):
         # 获取超话列表的API
         url = 'https://m.weibo.cn/api/container/getIndex?containerid=100803_-_followsuper&since_id=' + since_id
         headers = {
-            'Cookie': Cookie,
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1',
-            'Referer': 'https://m.weibo.cn/p/tabbar?containerid=100803_-_recentvisit&page_type=tabbar'
+            'Cookie':
+            Cookie,
+            'User-Agent':
+            'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1',
+            'Referer':
+            'https://m.weibo.cn/p/tabbar?containerid=100803_-_recentvisit&page_type=tabbar'
         }
         respJson = requests.get(url, headers=headers).json()
         num += 1
@@ -95,10 +99,14 @@ def chaohua_checkin(Cookie, item):
     # 超话签到地址
     url = 'https://weibo.com/p/aj/general/button'
     headers = {
-        'cookie': Cookie,
-        'user-Agent': ua,
-        'Referer': 'https://weibo.com/p/' + item['id'] + '/super_index',
-        'sec-ch-ua': '"Not;A Brand";v="99", "Microsoft Edge";v="91", "Chromium";v="91"'
+        'cookie':
+        Cookie,
+        'user-Agent':
+        ua,
+        'Referer':
+        'https://weibo.com/p/' + item['id'] + '/super_index',
+        'sec-ch-ua':
+        '"Not;A Brand";v="99", "Microsoft Edge";v="91", "Chromium";v="91"'
     }
     response = requests.get(url, headers=headers, params=data)
     respJson = response.json()
@@ -148,10 +156,8 @@ def start():
         # 暂时不写
         pass
 
-
-def main(event, context):
+def main(event,context):
     return start()
-
 
 if __name__ == '__main__':
     start()
