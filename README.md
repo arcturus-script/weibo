@@ -8,5 +8,5 @@
   - 使用企业微信推送的需要添加上 AgentId、EnterpriseID、Secret、Touser  
   - Touser、Account、UserName选填  
   - sub 必填-浏览器登陆微博后在cookie里面找到SUB=xxxx  
-[![WcL1l8.png](https://z3.ax1x.com/2021/07/25/WcL1l8.png)](https://imgtu.com/i/WcL1l8)
+[![WcL1l8.png](https://z3.ax1x.com/2021/07/25/WcL1l8.png)](https://imgtu.com/i/WcL1l8)  
 sub小写！(╯°□°）╯︵ 
