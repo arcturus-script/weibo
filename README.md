@@ -11,5 +11,7 @@
   - 使用企业微信推送的需要添加上 AgentId、EnterpriseID、Secret、Touser(选填)  
   - Account、UserName 选填(只是为了区别账号而已...)  
   - sub 必填-浏览器登陆微博后在 cookie 里面找到 SUB=xxxx  
-[![fQxQcq.png](https://z3.ax1x.com/2021/08/08/fQxQcq.png)](https://imgtu.com/i/fQxQcq)  
+  
+酷安大部分人都失败惹🤣🤣今天跟一个酷友调试了半天，发现好像只有 m.weibo.com 下的 sub 才有效，电脑版的 sub 会调试失败，出现 user code exception caught
+[![flTD4x.png](https://z3.ax1x.com/2021/08/08/flTD4x.png)](https://imgtu.com/i/flTD4x)  
 [![WcL1l8.png](https://z3.ax1x.com/2021/07/25/WcL1l8.png)](https://imgtu.com/i/WcL1l8)  
