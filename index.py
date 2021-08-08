@@ -110,22 +110,24 @@ def chaohua_checkin(Cookie, item):
     }
     response = requests.get(url, headers=headers, params=data)
     respJson = response.json()
+    print(respJson)
 
     if 'code' in respJson:
-        if respJson['code'] == '100000':
+        if respJson['code'] == '100000' or respJson['code'] == 100000:
             msg = ('话题[%s]签到成功-第%s个签到-获得%s经验' %
                    (item['title'],
                     re.findall(r'\d+', respJson['data']['alert_title'])[0],
                     re.findall(r'\d+', respJson['data']['alert_subtitle'])[0]))
             print(msg)
             return msg
-        elif respJson['code'] == 382004:
+        elif respJson['code'] == 382004 or respJson['code'] == '382004':
             msg = ('话题[%s]-今日已签到' % item['title'])
             print(msg)
             return msg
+        else:
+            return ('话题[%s]-签到失败' % item['title'])
     else:
-        print('签到失败')
-        return {'title': item['title'], 'error': '签到失败'}
+        return ('话题[%s]-签到失败' % item['title'])
 
 
 def start():
@@ -145,7 +147,7 @@ def start():
         AgentId = os.environ['AgentId']  # 应用ID
         Secret = os.environ['Secret']  # 应用密钥
         EnterpriseID = os.environ['EnterpriseID']  # 企业ID
-        Touser = os.getenv('Touser', '')  # 用户ID
+        Touser = os.getenv('Touser', '@all')  # 用户ID
         # 其他
         UserName = os.getenv('UserName', '')
         Account = os.getenv('Account', '')
@@ -158,6 +160,3 @@ def start():
 
 def main(event,context):
     return start()
-
-if __name__ == '__main__':
-    start()
