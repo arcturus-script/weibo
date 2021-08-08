@@ -21,7 +21,7 @@ def get_now_date():
 
 # 企业微信推送
 class qiye_wechat():
-    def __init__(self, AgentId, Secret, EnterpriseID, Touser):
+    def __init__(self, AgentId, Secret, EnterpriseID, Touser='@all'):
         # 企业微信消息推送所需参数
         self.AgentId = AgentId
         self.Secret = Secret
