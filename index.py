@@ -140,7 +140,7 @@ def start():
         time.sleep(15)
     if push_type == '1':
         # 使用企业微信推送
-        content = '\n'.join(msg_list)
+        content = '\n'.join('%s' % l for l in msg_list)
         # 企业微信消息推送所需参数
         AgentId = os.environ['AgentId']  # 应用ID
         Secret = os.environ['Secret']  # 应用密钥
