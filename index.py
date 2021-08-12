@@ -131,13 +131,14 @@ def chaohua_checkin(Cookie, item):
 
 
 def start():
-    Cookie = 'SUB=' + os.environ['sub']
+    Cookie1 = 'SUB=' + os.environ['sub1']
+    Cookie2 = 'SUB=' + os.environ['sub2']
     # 获取超话列表
-    chaohua_list = get_chaohua_List(Cookie)
+    chaohua_list = get_chaohua_List(Cookie1)
     print(chaohua_list)
     msg_list = []
     for item in chaohua_list:
-        msg = chaohua_checkin(Cookie, item)
+        msg = chaohua_checkin(Cookie2, item)
         msg_list.append(msg)
         time.sleep(15)
     if push_type == '1':
