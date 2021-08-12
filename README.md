@@ -13,7 +13,7 @@
 📌 sub 必填-浏览器登陆微博后在 cookie 里面找到 SUB=xxxx  
   
 酷安大部分人都失败惹🤣🤣
-目前发现获取超话列表需要 m.weibo.cn 下的 sub，签到需要电脑版的 sub，因为这两个 API 在不同的域名下面...🙃之前我用的时候只需要一个 sub 也不晓得啥情况
+目前发现获取超话列表需要 m.weibo.cn 下的 sub，签到需要电脑版的 sub(weibo.com下的sub)，因为这两个 API 在不同的域名下面...🙃之前我用的时候只需要一个 sub 也不晓得啥情况
 [![flTD4x.png](https://z3.ax1x.com/2021/08/08/flTD4x.png)](https://imgtu.com/i/flTD4x)  
 [![WcL1l8.png](https://z3.ax1x.com/2021/07/25/WcL1l8.png)](https://imgtu.com/i/WcL1l8)  
 现在是 sub1 和 sub2 (图懒得改了) 
