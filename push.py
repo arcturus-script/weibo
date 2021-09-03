@@ -21,7 +21,7 @@ def get_now_date():
 
 # 企业微信推送
 class qiye_wechat():
-    def __init__(self, AgentId, Secret, EnterpriseID, Touser='@all'):
+    def __init__(self, AgentId, Secret, EnterpriseID, Touser):
         # 企业微信消息推送所需参数
         self.AgentId = AgentId
         self.Secret = Secret
@@ -32,7 +32,7 @@ class qiye_wechat():
         self.qiye_push_url = 'https://qyapi.weixin.qq.com/cgi-bin/message/send'
         self.qiye_token_url = 'https://qyapi.weixin.qq.com/cgi-bin/gettoken'
 
-    # 获取企业微信推送服务的TOKEN
+    # 获取企业微信推送服务的 TOKEN
     def get_access_token(self):
         result = requests.get(url=self.qiye_token_url,
                               params={
@@ -60,7 +60,7 @@ class qiye_wechat():
             'msgtype': 'text',
             'agentid': self.AgentId,
             'text': {
-                'content': (Title + '\n' if Title else '') +
+                'content': Title +
                 ('用户名：' + UserName + '\n' if UserName else '') +
                 ('账 号：' + Account + '\n\n' if Account else '') + '日 期：' +
                 DateTime['now_date'] + '\n时 间：' + DateTime['now_time'] +
@@ -74,3 +74,14 @@ class qiye_wechat():
                                             encoding='utf-8'))
         result = response.json()
         print(result)
+
+
+# sever酱推送
+class server():
+    def __init__(self, key):
+        self.key = key
+
+    def push_message(self, title, content):
+        url = 'https://sctapi.ftqq.com/' + self.key + '.send'
+        params = {'title': title, 'desp': content}
+        requests.post(url, params)
