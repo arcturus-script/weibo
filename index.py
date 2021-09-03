@@ -7,10 +7,9 @@ import os
 ''' 是否使用推送？
     0: 不使用
     1: 企业微信
-    2: 待定
+    2: server酱
 '''
-push_type = '1'
-
+push_type = os.getenv('push_type', 0)
 
 
 # 获取超话列表
@@ -54,8 +53,6 @@ def get_chaohua_List(Cookie):
 def get_chaohua_item(card_group):
     super_List = []
     for card in card_group:
-        # card['card_type'] == '8' 是超话
-        # card['card_type'] == '42' 是“我的关注”
         if card['card_type'] == '8':
             # 获得超话链接
             scheme = card['scheme']
@@ -73,8 +70,10 @@ def get_chaohua_item(card_group):
                 'level':
                 re.sub(u'([^\u0041-\u005a\u0061-\u007a\u0030-\u0039])', '',
                        card['desc1']),
-                'title': card['title_sub'],
-                'id': containerid
+                'title':
+                card['title_sub'],
+                'id':
+                containerid
             }
             super_List.append(super_item)
     return super_List
@@ -113,21 +112,48 @@ def chaohua_checkin(Cookie, item):
     print(respJson)
 
     if 'code' in respJson:
-        if respJson['code'] == '100000' or respJson['code'] == 100000:
-            msg = ('话题[%s]签到成功-第%s个签到-获得%s经验' %
-                   (item['title'],
-                    re.findall(r'\d+', respJson['data']['alert_title'])[0],
-                    re.findall(r'\d+', respJson['data']['alert_subtitle'])[0]))
-            print(msg)
+        if int(respJson['code']) == 100000:
+            msg = {
+                'title':
+                item['title'],
+                'rank':
+                re.findall(r'\d+', respJson['data']['alert_title'])[0],
+                'experience':
+                re.findall(r'\d+', respJson['data']['alert_subtitle'])[0],
+                'result':
+                '签到成功'
+            }
+
+            message = ('话题[%s]签到成功-第%s个签到-获得%s经验' %
+                       (msg['title'], msg['rank'], msg['experience']))
+            print(message)
             return msg
-        elif respJson['code'] == 382004 or respJson['code'] == '382004':
-            msg = ('话题[%s]-今日已签到' % item['title'])
-            print(msg)
+        elif int(respJson['code']) == 382004:
+            msg = {
+                'title': item['title'],
+                'rank': '',
+                'experience': '',
+                'result': '今日已签到'
+            }
+            message = ('话题[%s]-%s' % (msg['title'], msg['result']))
+            print(message)
             return msg
         else:
-            return ('话题[%s]-签到失败' % item['title'])
+            msg = {
+                'title': item['title'],
+                'rank': '',
+                'experience': '',
+                'result': '签到失败'
+            }
+            return msg
     else:
-        return ('话题[%s]-签到失败' % item['title'])
+        msg = {
+            'title': item['title'],
+            'rank': '',
+            'experience': '',
+            'result': '签到失败'
+        }
+        return msg
 
 
 def start():
@@ -139,10 +165,21 @@ def start():
     for item in chaohua_list:
         msg = chaohua_checkin(Cookie, item)
         msg_list.append(msg)
-        time.sleep(15)
+        time.sleep(10)
+
     if push_type == '1':
         # 使用企业微信推送
-        content = '\n'.join('%s' % l for l in msg_list)
+        msg = []
+        for item in msg_list:
+            if '失败' or '已签到' in item['result']:
+                message = ('话题[%s]-%s' % (item['title'], item['result']))
+                msg.append(message)
+            else:
+                message = ('话题[%s]签到成功-第%s个签到-获得%s经验' %
+                           (item['title'], item['rank'], item['experience']))
+                msg.append(message)
+
+        content = '\n'.join(msg)
         # 企业微信消息推送所需参数
         AgentId = os.environ['AgentId']  # 应用ID
         Secret = os.environ['Secret']  # 应用密钥
@@ -154,9 +191,24 @@ def start():
         # 进行推送
         p = push.qiye_wechat(AgentId, Secret, EnterpriseID, Touser)
         p.push_text_message('微博超话', content, UserName, Account)
-    else:
-        # 暂时不写
-        pass
 
-def main(event,context):
+    else:
+        # 使用 sever 酱推送
+        key = os.environ['Key']
+
+        content = '''## 微博超话
+            |超话|经验|第几个签到|签到结果|
+            |:----:|:----:|:----:|:----:|
+        '''
+
+        for item in msg_list:
+            msg = '''|''' + item['title'] + '''|''' + item['experience'] + '''|''' + item[
+                'rank'] + '''|''' + item['result'] + '''|'''
+            content = content + msg
+
+        p = push.server(key)
+        p.push_message('微博超话', content)
+
+
+def main(event, context):
     return start()
