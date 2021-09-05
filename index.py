@@ -196,14 +196,13 @@ def start():
         # 使用 sever 酱推送
         key = os.environ['Key']
 
-        content = '''## 微博超话
-            |超话|经验|第几个签到|签到结果|
-            |:----:|:----:|:----:|:----:|
-        '''
+        content = ('## 微博超话\n'
+            '|超话|经验|第几个签到|签到结果|\n'
+            '|:----:|:----:|:----:|:----:|\n')
 
         for item in msg_list:
-            msg = '''|''' + item['title'] + '''|''' + item['experience'] + '''|''' + item[
-                'rank'] + '''|''' + item['result'] + '''|'''
+            msg = '|' + item['title'] + '|' + item['experience'] + '|' + item[
+                'rank'] + '|' + item['result'] + '|\n'
             content = content + msg
 
         p = push.server(key)
