@@ -8,6 +8,7 @@ import os
     0: 不使用
     1: 企业微信
     2: server酱
+    3: pushplus
 '''
 push_type = os.getenv('push_type', 0)
 
@@ -33,11 +34,12 @@ def get_chaohua_List(Cookie):
         # 开始解析
         # 获得超话数组
         if respJson['ok'] == 1:
-            cards = respJson['data']['cards'][0]
-            card_group = cards['card_group']
-            # 将获得的 card_group 进行解析 去掉不必要的内容
-            list_ = get_chaohua_item(card_group)
-            super_list.extend(list_)
+            for i in range(len(respJson['data']['cards'])):
+                cards = respJson['data']['cards'][i]
+                card_group = cards['card_group']
+                # 将获得的 card_group 进行解析 去掉不必要的内容
+                list_ = get_chaohua_item(card_group)
+                super_list.extend(list_)
             # 获取下一页id
             since_id = respJson['data']['cardlistInfo']['since_id']
             # 获取到空就是爬取完了
@@ -165,7 +167,7 @@ def start():
     for item in chaohua_list:
         msg = chaohua_checkin(Cookie, item)
         msg_list.append(msg)
-        time.sleep(10)
+        time.sleep(1)
 
     if push_type == '1':
         # 使用企业微信推送
@@ -192,7 +194,7 @@ def start():
         p = push.qiye_wechat(AgentId, Secret, EnterpriseID, Touser)
         p.push_text_message('微博超话', content, UserName, Account)
 
-    else:
+    elif push_type == '2':
         # 使用 sever 酱推送
         key = os.environ['Key']
 
@@ -207,7 +209,26 @@ def start():
 
         p = push.server(key)
         p.push_message('微博超话', content)
+    elif push_type == '3' :
+        # 使用 pushplus 酱推送
+        key = os.environ['Key']
 
+        content = ('## 微博超话\n'
+            '|超话|经验|第几个签到|签到结果|\n'
+            '|:----:|:----:|:----:|:----:|\n')
 
+        for item in msg_list:
+            msg = '|' + item['title'] + '|' + item['experience'] + '|' + item[
+                'rank'] + '|' + item['result'] + '|\n'
+            content = content + msg
+
+        p = push.pushplus(key)
+        p.push_message('微博超话', content)
+
+    else:
+        pass
 def main(event, context):
     return start()
+
+if __name__ == '__main__':
+    start()
