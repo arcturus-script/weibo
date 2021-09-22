@@ -30,6 +30,7 @@ jobs:
         sub='${{ secrets.SUB }}'
         Key='${{ secrets.KEY }}'
         push_type='${{ secrets.push_type }}'
-       
+        pip install requests pytz
+        
        
         python index.py
