@@ -10,8 +10,6 @@ on:
     - cron:  0 8,23 * * * 
   watch:
     types: started
-env:
-    SUB:${{ secrets.SUB }}
 jobs:
   build:
 
