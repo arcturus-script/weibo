@@ -85,6 +85,7 @@ class server():
         url = 'https://sctapi.ftqq.com/' + self.key + '.send'
         params = {'title': title, 'desp': content}
         requests.post(url, params)
+
 # pushplus酱推送
 class pushplus():
     def __init__(self, key):
