@@ -28,9 +28,9 @@ jobs:
         pip install requests pytz    
     - name: 签到
       env:
-        sub:'${{ secrets.SUB }}'
-        Key:'${{ secrets.KEY }}'
-        push_type:'${{ secrets.push_type }}'
+        sub:${{ secrets.SUB }}
+        Key:${{ secrets.KEY }}
+        push_type:${{ secrets.push_type }}
       run: |
         
         python index.py
