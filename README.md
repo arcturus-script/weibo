@@ -36,7 +36,7 @@
 |0|默认值(不使用推送)|
 |1|企业微信|
 |2|sever酱|
-
+|3|pushplus|
 ### 获取 sub  
 经过查找发现 sina.cn 下的 sub 可以同时获取超话列表和签到   
 [![hM3nQU.png](https://z3.ax1x.com/2021/08/27/hM3nQU.png)](https://imgtu.com/i/hM3nQU)  
