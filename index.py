@@ -199,8 +199,8 @@ def start():
         key = os.environ['Key']
 
         content = ('## 微博超话\n'
-            '|超话|经验|第几个签到|签到结果|\n'
-            '|:----:|:----:|:----:|:----:|\n')
+                   '|超话|经验|第几个签到|签到结果|\n'
+                   '|:----:|:----:|:----:|:----:|\n')
 
         for item in msg_list:
             msg = '|' + item['title'] + '|' + item['experience'] + '|' + item[
@@ -209,13 +209,13 @@ def start():
 
         p = push.server(key)
         p.push_message('微博超话', content)
-    elif push_type == '3' :
+    elif push_type == '3':
         # 使用 pushplus 酱推送
         key = os.environ['Key']
 
         content = ('## 微博超话\n'
-            '|超话|经验|第几个签到|签到结果|\n'
-            '|:----:|:----:|:----:|:----:|\n')
+                   '|超话|经验|第几个签到|签到结果|\n'
+                   '|:----:|:----:|:----:|:----:|\n')
 
         for item in msg_list:
             msg = '|' + item['title'] + '|' + item['experience'] + '|' + item[
@@ -225,10 +225,10 @@ def start():
         p = push.pushplus(key)
         p.push_message('微博超话', content)
 
-    else:
-        pass
+
 def main(event, context):
     return start()
+
 
 if __name__ == '__main__':
     start()

@@ -60,8 +60,8 @@ class qiye_wechat():
             'msgtype': 'text',
             'agentid': self.AgentId,
             'text': {
-                'content': Title +
-                ('用户名：' + UserName + '\n' if UserName else '') +
+                'content':
+                Title + ('用户名：' + UserName + '\n' if UserName else '') +
                 ('账 号：' + Account + '\n\n' if Account else '') + '日 期：' +
                 DateTime['now_date'] + '\n时 间：' + DateTime['now_time'] +
                 '\n\n' + Content
@@ -86,12 +86,13 @@ class server():
         params = {'title': title, 'desp': content}
         requests.post(url, params)
 
+
 # pushplus酱推送
 class pushplus():
     def __init__(self, key):
         self.key = key
 
     def push_message(self, title, content):
-        url ='http://www.pushplus.plus/send'
-        params = {'token':self.key,'title': title, 'content': content}
+        url = 'http://www.pushplus.plus/send'
+        params = {'token': self.key, 'title': title, 'content': content}
         requests.post(url, params)
