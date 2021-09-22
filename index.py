@@ -5,7 +5,7 @@ import push
 import re
 import os
 ''' 是否使用推送？
-    0: 不使用
+    0: 不使用(默认)
     1: 企业微信
     2: server酱
     3: pushplus
