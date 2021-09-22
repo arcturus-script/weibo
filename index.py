@@ -8,6 +8,7 @@ import os
     0: 不使用
     1: 企业微信
     2: server酱
+    2: pushplus
 '''
 push_type = os.getenv('push_type', 0)
 
