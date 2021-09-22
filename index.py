@@ -33,11 +33,12 @@ def get_chaohua_List(Cookie):
         # 开始解析
         # 获得超话数组
         if respJson['ok'] == 1:
-            cards = respJson['data']['cards'][0]
-            card_group = cards['card_group']
-            # 将获得的 card_group 进行解析 去掉不必要的内容
-            list_ = get_chaohua_item(card_group)
-            super_list.extend(list_)
+            for i in range(len(respJson['data']['cards'])):
+                cards = respJson['data']['cards'][i]
+                card_group = cards['card_group']
+                # 将获得的 card_group 进行解析 去掉不必要的内容
+                list_ = get_chaohua_item(card_group)
+                super_list.extend(list_)
             # 获取下一页id
             since_id = respJson['data']['cardlistInfo']['since_id']
             # 获取到空就是爬取完了
