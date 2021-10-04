@@ -19,7 +19,7 @@
 [![h64GPf.png](https://z3.ax1x.com/2021/09/03/h64GPf.png)](https://imgtu.com/i/h64GPf)   
 7.超时时间设置成 900
 ### 环境变量
-|key|描述|
+|键|描述|
 |:----:|:----:|
 |AgentId|应用id|
 |EnterpriseID|企业id|
@@ -29,6 +29,7 @@
 |UserName|(选填)只是为了区别账号而已|
 |sub|(必填)微博的cookie|
 |push_type|推送服务类型|
+|Key|sever酱&pushplus的key|
 
 📌 push_type
 |值|描述|
