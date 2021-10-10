@@ -4,13 +4,6 @@ import time
 import push
 import re
 import os
-''' 是否使用推送？
-    0: 不使用(默认)
-    1: 企业微信
-    2: server酱
-    3: pushplus
-'''
-push_type = os.getenv('push_type', 0)
 
 
 # 获取超话列表
@@ -40,7 +33,7 @@ def get_chaohua_List(Cookie):
                 # 将获得的 card_group 进行解析 去掉不必要的内容
                 list_ = get_chaohua_item(card_group)
                 super_list.extend(list_)
-            # 获取下一页id
+            # 获取下一页 id
             since_id = respJson['data']['cardlistInfo']['since_id']
             # 获取到空就是爬取完了
             if since_id == '':
@@ -51,7 +44,7 @@ def get_chaohua_List(Cookie):
     return super_list
 
 
-# 根据超话列表获取单个超话id
+# 根据超话列表获取单个超话 id
 def get_chaohua_item(card_group):
     super_List = []
     for card in card_group:
@@ -159,70 +152,74 @@ def chaohua_checkin(Cookie, item):
 
 
 def start():
-    Cookie = 'SUB=' + os.environ['sub']
-    # 获取超话列表
-    chaohua_list = get_chaohua_List(Cookie)
-    print(chaohua_list)
-    msg_list = []
-    for item in chaohua_list:
-        msg = chaohua_checkin(Cookie, item)
-        msg_list.append(msg)
-        time.sleep(1)
+    subList = os.environ['sub'].split(',')
+    msg_list = list()
+    for subItem in subList:
+        Cookie = 'SUB=' + subItem
+        # 获取超话列表
+        chaohua_list = get_chaohua_List(Cookie)
+        print(chaohua_list)
+        msg_list_item = []
+        for item in chaohua_list:
+            msg = chaohua_checkin(Cookie, item)
+            msg_list_item.append(msg)
+            time.sleep(1)
+        msg_list.append(msg_list_item)
 
+    push_type = os.getenv('push_type', 0)
+    # 账号和昵称
+    UserName = os.getenv('UserName', '').split(',')
+    Account = os.getenv('Account', '').split(',')
     if push_type == '1':
-        # 使用企业微信推送
-        msg = []
-        for item in msg_list:
-            if '失败' or '已签到' in item['result']:
-                message = ('话题[%s]-%s' % (item['title'], item['result']))
-                msg.append(message)
-            else:
-                message = ('话题[%s]签到成功-第%s个签到-获得%s经验' %
-                           (item['title'], item['rank'], item['experience']))
-                msg.append(message)
-
-        content = '\n'.join(msg)
         # 企业微信消息推送所需参数
         AgentId = os.environ['AgentId']  # 应用ID
         Secret = os.environ['Secret']  # 应用密钥
         EnterpriseID = os.environ['EnterpriseID']  # 企业ID
         Touser = os.getenv('Touser', '@all')  # 用户ID
-        # 其他
-        UserName = os.getenv('UserName', '')
-        Account = os.getenv('Account', '')
-        # 进行推送
-        p = push.qiye_wechat(AgentId, Secret, EnterpriseID, Touser)
-        p.push_text_message('微博超话', content, UserName, Account)
 
-    elif push_type == '2':
-        # 使用 sever 酱推送
+        for index, msg_list_item in enumerate(msg_list):
+            msg = []
+            for item in msg_list_item:
+                if '失败' or '已签到' in item['result']:
+                    message = ('话题[%s]-%s' % (item['title'], item['result']))
+                    msg.append(message)
+                else:
+                    message = (
+                        '话题[%s]签到成功-第%s个签到-获得%s经验' %
+                        (item['title'], item['rank'], item['experience']))
+                    msg.append(message)
+            content = '\n'.join(msg)
+
+            # 进行推送
+            p = push.qiye_wechat(AgentId, Secret, EnterpriseID, Touser)
+            p.push_text_message('微博超话', content, UserName[index],
+                                Account[index])
+
+    elif os.getenv('Key', '') and push_type != '0':
+        content = ''
+        for index, msg_list_item in enumerate(msg_list):
+            Account_ = ('### 账号：' + Account[index] +
+                        '\n') if Account[index] else ''
+            UserName_ = ('### 用户名：' + UserName[index] +
+                         '\n') if UserName[index] else ''
+            content = content + Account_ + UserName_ + (
+                '|超话|经验|第几个签到|签到结果|\n'
+                '|:----:|:----:|:----:|:----:|\n')
+
+            for item in msg_list_item:
+                msg = '|' + item['title'] + '|' + item[
+                    'experience'] + '|' + item['rank'] + '|' + item[
+                        'result'] + '|\n'
+                content = content + msg
+
         key = os.environ['Key']
+        if push_type == '2':
+            # 使用 sever 酱推送
+            p = push.server(key)
+        elif push_type == '3':
+            # 使用 pushplus 酱推送
+            p = push.pushplus(key)
 
-        content = ('## 微博超话\n'
-                   '|超话|经验|第几个签到|签到结果|\n'
-                   '|:----:|:----:|:----:|:----:|\n')
-
-        for item in msg_list:
-            msg = '|' + item['title'] + '|' + item['experience'] + '|' + item[
-                'rank'] + '|' + item['result'] + '|\n'
-            content = content + msg
-
-        p = push.server(key)
-        p.push_message('微博超话', content)
-    elif push_type == '3':
-        # 使用 pushplus 酱推送
-        key = os.environ['Key']
-
-        content = ('## 微博超话\n'
-                   '|超话|经验|第几个签到|签到结果|\n'
-                   '|:----:|:----:|:----:|:----:|\n')
-
-        for item in msg_list:
-            msg = '|' + item['title'] + '|' + item['experience'] + '|' + item[
-                'rank'] + '|' + item['result'] + '|\n'
-            content = content + msg
-
-        p = push.pushplus(key)
         p.push_message('微博超话', content)
 
 
