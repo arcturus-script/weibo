@@ -192,16 +192,20 @@ def start():
 
             # 进行推送
             p = push.qiye_wechat(AgentId, Secret, EnterpriseID, Touser)
-            p.push_text_message('微博超话', content, UserName[index],
-                                Account[index])
+            try:
+                p.push_text_message('微博超话', content, UserName[index], Account[index])
+            except IndexError:
+                p.push_text_message('微博超话', content)
 
     elif os.getenv('Key', '') and push_type != '0':
         content = ''
         for index, msg_list_item in enumerate(msg_list):
-            Account_ = ('### 账号：' + Account[index] +
-                        '\n') if Account[index] else ''
-            UserName_ = ('### 用户名：' + UserName[index] +
-                         '\n') if UserName[index] else ''
+            try:
+                Account_ = ('### 账号：' + Account[index])
+                UserName_ = ('### 用户名：' + UserName[index])
+            except IndexError:
+                Account_ = ''
+                UserName_ = ''
             content = content + Account_ + UserName_ + (
                 '|超话|经验|第几个签到|签到结果|\n'
                 '|:----:|:----:|:----:|:----:|\n')
