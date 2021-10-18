@@ -1,6 +1,7 @@
 from urllib.parse import urlparse
 import requests
 import time
+import json
 import push
 import re
 import os
@@ -22,24 +23,28 @@ def get_chaohua_List(Cookie):
             'Referer':
             'https://m.weibo.cn/p/tabbar?containerid=100803_-_recentvisit&page_type=tabbar'
         }
-        respJson = requests.get(url, headers=headers).json()
-        num += 1
-        # 开始解析
-        # 获得超话数组
-        if respJson['ok'] == 1:
-            for i in range(len(respJson['data']['cards'])):
-                cards = respJson['data']['cards'][i]
-                card_group = cards['card_group']
-                # 将获得的 card_group 进行解析 去掉不必要的内容
-                list_ = get_chaohua_item(card_group)
-                super_list.extend(list_)
-            # 获取下一页 id
-            since_id = respJson['data']['cardlistInfo']['since_id']
-            # 获取到空就是爬取完了
-            if since_id == '':
+        try:
+            respJson = requests.get(url, headers=headers).json()
+            num += 1
+            # 开始解析
+            # 获得超话数组
+            if respJson['ok'] == 1:
+                for i in range(len(respJson['data']['cards'])):
+                    cards = respJson['data']['cards'][i]
+                    card_group = cards['card_group']
+                    # 将获得的 card_group 进行解析 去掉不必要的内容
+                    list_ = get_chaohua_item(card_group)
+                    super_list.extend(list_)
+                # 获取下一页 id
+                since_id = respJson['data']['cardlistInfo']['since_id']
+                # 获取到空就是爬取完了
+                if since_id == '':
+                    break
+            else:
+                print('超话列表为空')
                 break
-        else:
-            print('超话列表为空')
+        except json.JSONDecodeError:
+            print('sub 不对哦 😥 获取不到超话列表')
             break
     return super_list
 
