@@ -39,6 +39,7 @@ def get_chaohua_List(Cookie):
                 since_id = respJson['data']['cardlistInfo']['since_id']
                 # 获取到空就是爬取完了
                 if since_id == '':
+                    print(super_list)
                     break
             else:
                 print('超话列表为空')
@@ -163,73 +164,73 @@ def start():
         Cookie = 'SUB=' + subItem
         # 获取超话列表
         chaohua_list = get_chaohua_List(Cookie)
-        print(chaohua_list)
         msg_list_item = []
         for item in chaohua_list:
             msg = chaohua_checkin(Cookie, item)
             msg_list_item.append(msg)
             time.sleep(1)
         msg_list.append(msg_list_item)
+    
+    if len(msg_list) != 0:
+        push_type = os.getenv('push_type', 0)
+        # 账号和昵称
+        UserName = os.getenv('UserName', '').split(',')
+        Account = os.getenv('Account', '').split(',')
+        if push_type == '1':
+            # 企业微信消息推送所需参数
+            AgentId = os.environ['AgentId']  # 应用ID
+            Secret = os.environ['Secret']  # 应用密钥
+            EnterpriseID = os.environ['EnterpriseID']  # 企业ID
+            Touser = os.getenv('Touser', '@all')  # 用户ID
 
-    push_type = os.getenv('push_type', 0)
-    # 账号和昵称
-    UserName = os.getenv('UserName', '').split(',')
-    Account = os.getenv('Account', '').split(',')
-    if push_type == '1':
-        # 企业微信消息推送所需参数
-        AgentId = os.environ['AgentId']  # 应用ID
-        Secret = os.environ['Secret']  # 应用密钥
-        EnterpriseID = os.environ['EnterpriseID']  # 企业ID
-        Touser = os.getenv('Touser', '@all')  # 用户ID
+            for index, msg_list_item in enumerate(msg_list):
+                msg = []
+                for item in msg_list_item:
+                    if '失败' or '已签到' in item['result']:
+                        message = ('话题[%s]-%s' % (item['title'], item['result']))
+                        msg.append(message)
+                    else:
+                        message = (
+                            '话题[%s]签到成功-第%s个签到-获得%s经验' %
+                            (item['title'], item['rank'], item['experience']))
+                        msg.append(message)
+                content = '\n'.join(msg)
 
-        for index, msg_list_item in enumerate(msg_list):
-            msg = []
-            for item in msg_list_item:
-                if '失败' or '已签到' in item['result']:
-                    message = ('话题[%s]-%s' % (item['title'], item['result']))
-                    msg.append(message)
-                else:
-                    message = (
-                        '话题[%s]签到成功-第%s个签到-获得%s经验' %
-                        (item['title'], item['rank'], item['experience']))
-                    msg.append(message)
-            content = '\n'.join(msg)
+                # 进行推送
+                p = push.qiye_wechat(AgentId, Secret, EnterpriseID, Touser)
+                try:
+                    p.push_text_message('微博超话', content, UserName[index], Account[index])
+                except IndexError:
+                    p.push_text_message('微博超话', content)
 
-            # 进行推送
-            p = push.qiye_wechat(AgentId, Secret, EnterpriseID, Touser)
-            try:
-                p.push_text_message('微博超话', content, UserName[index], Account[index])
-            except IndexError:
-                p.push_text_message('微博超话', content)
+        elif os.getenv('Key', '') and push_type != '0':
+            content = ''
+            for index, msg_list_item in enumerate(msg_list):
+                try:
+                    Account_ = ('### 账号：' + Account[index])
+                    UserName_ = ('### 用户名：' + UserName[index])
+                except IndexError:
+                    Account_ = ''
+                    UserName_ = ''
+                content = content + Account_ + UserName_ + (
+                    '|超话|经验|第几个签到|签到结果|\n'
+                    '|:----:|:----:|:----:|:----:|\n')
 
-    elif os.getenv('Key', '') and push_type != '0':
-        content = ''
-        for index, msg_list_item in enumerate(msg_list):
-            try:
-                Account_ = ('### 账号：' + Account[index])
-                UserName_ = ('### 用户名：' + UserName[index])
-            except IndexError:
-                Account_ = ''
-                UserName_ = ''
-            content = content + Account_ + UserName_ + (
-                '|超话|经验|第几个签到|签到结果|\n'
-                '|:----:|:----:|:----:|:----:|\n')
+                for item in msg_list_item:
+                    msg = '|' + item['title'] + '|' + item[
+                        'experience'] + '|' + item['rank'] + '|' + item[
+                            'result'] + '|\n'
+                    content = content + msg
 
-            for item in msg_list_item:
-                msg = '|' + item['title'] + '|' + item[
-                    'experience'] + '|' + item['rank'] + '|' + item[
-                        'result'] + '|\n'
-                content = content + msg
+            key = os.environ['Key']
+            if push_type == '2':
+                # 使用 sever 酱推送
+                p = push.server(key)
+            elif push_type == '3':
+                # 使用 pushplus 酱推送
+                p = push.pushplus(key)
 
-        key = os.environ['Key']
-        if push_type == '2':
-            # 使用 sever 酱推送
-            p = push.server(key)
-        elif push_type == '3':
-            # 使用 pushplus 酱推送
-            p = push.pushplus(key)
-
-        p.push_message('微博超话', content)
+            p.push_message('微博超话', content)
 
 
 def main(event, context):
