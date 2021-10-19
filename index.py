@@ -170,7 +170,7 @@ def start():
             msg_list_item.append(msg)
             time.sleep(1)
         msg_list.append(msg_list_item)
-    
+
     if len(msg_list) != 0:
         push_type = os.getenv('push_type', 0)
         # 账号和昵称
@@ -187,7 +187,8 @@ def start():
                 msg = []
                 for item in msg_list_item:
                     if '失败' or '已签到' in item['result']:
-                        message = ('话题[%s]-%s' % (item['title'], item['result']))
+                        message = ('话题[%s]-%s' %
+                                   (item['title'], item['result']))
                         msg.append(message)
                     else:
                         message = (
@@ -199,7 +200,8 @@ def start():
                 # 进行推送
                 p = push.qiye_wechat(AgentId, Secret, EnterpriseID, Touser)
                 try:
-                    p.push_text_message('微博超话', content, UserName[index], Account[index])
+                    p.push_text_message('微博超话', content, UserName[index],
+                                        Account[index])
                 except IndexError:
                     p.push_text_message('微博超话', content)
 
@@ -207,8 +209,8 @@ def start():
             content = ''
             for index, msg_list_item in enumerate(msg_list):
                 try:
-                    Account_ = ('### 账号：' + Account[index])
-                    UserName_ = ('### 用户名：' + UserName[index])
+                    Account_ = '### 账号：%s\n' % Account[index]
+                    UserName_ = '### 用户名：%s\n' % UserName[index]
                 except IndexError:
                     Account_ = ''
                     UserName_ = ''
@@ -217,9 +219,9 @@ def start():
                     '|:----:|:----:|:----:|:----:|\n')
 
                 for item in msg_list_item:
-                    msg = '|' + item['title'] + '|' + item[
-                        'experience'] + '|' + item['rank'] + '|' + item[
-                            'result'] + '|\n'
+                    msg = '|%s|%s|%s|%s|\n' % (item['title'],
+                                               item['experience'],
+                                               item['rank'], item['result'])
                     content = content + msg
 
             key = os.environ['Key']
