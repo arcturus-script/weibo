@@ -172,7 +172,7 @@ def start():
         msg_list.append(msg_list_item)
 
     if len(msg_list) != 0:
-        push_type = os.getenv('push_type', 0)
+        push_type = os.getenv('push_type', '0')
         # 账号和昵称
         UserName = os.getenv('UserName', '').split(',')
         Account = os.getenv('Account', '').split(',')
