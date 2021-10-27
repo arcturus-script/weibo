@@ -174,8 +174,8 @@ def start():
     if len(msg_list) != 0:
         push_type = os.getenv('push_type', '0')
         # 账号和昵称
-        UserName = os.getenv('UserName', '').split(',')
-        Account = os.getenv('Account', '').split(',')
+        UserName = os.getenv('UserName').split(',')
+        Account = os.getenv('Account').split(',')
         if push_type == '1':
             # 企业微信消息推送所需参数
             AgentId = os.environ['AgentId']  # 应用ID
