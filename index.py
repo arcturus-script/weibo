@@ -174,8 +174,13 @@ def start():
     if len(msg_list) != 0:
         push_type = os.getenv('push_type', '0')
         # 账号和昵称
-        UserName = os.getenv('UserName').split(',')
-        Account = os.getenv('Account').split(',')
+        UserName = os.getenv('UserName')
+        Account = os.getenv('Account')
+        if UserName is not None:
+            UserName = UserName.split(',')
+        if Account is not None:
+            Account = Account.split(',')
+
         if push_type == '1':
             # 企业微信消息推送所需参数
             AgentId = os.environ['AgentId']  # 应用ID
@@ -211,7 +216,7 @@ def start():
                 try:
                     Account_ = '### 账号：%s\n' % Account[index]
                     UserName_ = '### 用户名：%s\n' % UserName[index]
-                except IndexError:
+                except (IndexError, TypeError):
                     Account_ = ''
                     UserName_ = ''
                 content = content + Account_ + UserName_ + (
