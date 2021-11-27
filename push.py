@@ -94,5 +94,10 @@ class pushplus():
 
     def push_message(self, title, content):
         url = 'http://www.pushplus.plus/send'
-        params = {'token': self.key, 'title': title, 'content': content}
+        params = {
+            'token': self.key,
+            'title': title,
+            'content': content,
+            "template": "markdown"
+        }
         requests.post(url, params)
