@@ -87,7 +87,6 @@ class server():
         requests.post(url, params)
 
 
-# pushplus酱推送
 class pushplus():
     def __init__(self, key):
         self.key = key
@@ -100,4 +99,8 @@ class pushplus():
             'content': content,
             "template": "markdown"
         }
-        requests.post(url, params)
+        rep = requests.post(url, params=params).json()
+        if rep.get("code") == 200:
+            print("发送消息成功")
+        else:
+            print(f"发送消息失败: {rep.msg}")
