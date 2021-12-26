@@ -101,4 +101,4 @@ class pushplus():
         if rep["code"] == 200:
             print("发送消息成功")
         else:
-            print(f"发送消息失败: {rep.msg}")
+            print(f"发送消息失败: {rep['msg']}")
