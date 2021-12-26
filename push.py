@@ -92,15 +92,13 @@ class pushplus():
         self.key = key
 
     def push_message(self, title, content):
-        url = 'http://www.pushplus.plus/send'
-        params = {
-            'token': self.key,
-            'title': title,
-            'content': content,
-            "template": "markdown"
-        }
-        rep = requests.post(url, params=params).json()
-        if rep.get("code") == 200:
+        url = f'http://www.pushplus.plus/send?token={self.key}'
+        params = {'title': title, 'content': content, "template": "markdown"}
+        headers = {'Content-Type': 'application/json'}
+
+        rep = requests.post(url, json=params, headers=headers).json()
+
+        if rep["code"] == 200:
             print("发送消息成功")
         else:
             print(f"发送消息失败: {rep.msg}")
