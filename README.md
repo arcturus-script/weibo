@@ -4,6 +4,8 @@
 [![GitHub issues](https://img.shields.io/github/issues/ICE99125/weibo_checkin?style=for-the-badge)](https://github.com/ICE99125/weibo_checkin/issues) [![GitHub forks](https://img.shields.io/github/forks/ICE99125/weibo_checkin?style=for-the-badge)](https://github.com/ICE99125/weibo_checkin/network) [![GitHub stars](https://img.shields.io/github/stars/ICE99125/weibo_checkin?style=for-the-badge)](https://github.com/ICE99125/weibo_checkin/stargazers) [![Python](https://img.shields.io/badge/python-3.6%2B-orange?style=for-the-badge)](https://www.python.org/)
 </div>
 
+> 没救了...
+
 ### 步骤
 1.新建-自定义创建  
 2.函数名称(随便取)  
