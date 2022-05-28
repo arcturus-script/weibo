@@ -11,7 +11,7 @@ def main(*arg):
     if together is None or together:  # 如果需要一并推送
         msg_list = []
         for i in multi:
-            b = Weibo(i["sub"])
+            b = Weibo(gsid=i["gsid"], from_=i["from"], s=i["s"], uid=i["uid"])
             res = b.start()
 
             msg_list.extend(res)
@@ -22,7 +22,7 @@ def main(*arg):
             print("未开启推送")
     else:  # 单独推送
         for i in multi:
-            b = Weibo(i["sub"])
+            b = Weibo(gsid=i["gsid"], from_=i["from"], s=i["s"], uid=i["uid"])
             res = b.start()
 
             alone_type = i.get("push")  # 单独推送类型
@@ -31,6 +31,7 @@ def main(*arg):
                 push(alone_type, "微博", res)
             else:
                 print("未开启推送")
+
 
 if __name__ == "__main__":
     main()

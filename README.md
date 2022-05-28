@@ -4,11 +4,18 @@
 [![GitHub issues](https://img.shields.io/github/issues/ICE99125/weibo_checkin?style=for-the-badge)](https://github.com/ICE99125/weibo_checkin/issues) [![GitHub forks](https://img.shields.io/github/forks/ICE99125/weibo_checkin?style=for-the-badge)](https://github.com/ICE99125/weibo_checkin/network) [![GitHub stars](https://img.shields.io/github/stars/ICE99125/weibo_checkin?style=for-the-badge)](https://github.com/ICE99125/weibo_checkin/stargazers) [![Python](https://img.shields.io/badge/python-3.6%2B-orange?style=for-the-badge)](https://www.python.org/)
 </div>
 
-> 2022.02.22 没救了...
+
 
 ### 步骤
-查看[这里](https://github.com/ICE99125/BiliBili_Checkin.git)
 
-### sub 获取
+1. finder抓包, 详细教程看 [fiddler抓包mumu模拟器详细配置步骤](https://blog.csdn.net/weixin_41635750/article/details/117196839)
 
-[![H66hgf.png](https://s4.ax1x.com/2022/02/14/H66hgf.png)](https://imgtu.com/i/H66hgf)
+2. 点击签到
+
+   [![Xuey8A.png](C:\Users\16383\Desktop\weibo_checkin\README.assets\Xuey8A.png)](https://imgtu.com/i/Xuey8A)
+
+3. 找到响应的请求
+
+   [![XueHvq.png](C:\Users\16383\Desktop\weibo_checkin\README.assets\XueHvq.png)](https://imgtu.com/i/XueHvq)
+
+4. 把 config.py 里提到的参数填进去即可

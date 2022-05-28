@@ -1,16 +1,25 @@
 import requests as req
-import time
-import json
 import re
+import time
+import random
 
 
 def handler(fn):
     def inner(*args, **kwargs):
         res = fn(*args, **kwargs)
 
-        table = [("超话", "第几个签到", "经验", "签到结果")]
+        table = [("超话", "排名", "经验", "积分", "连续天数", "结果")]
         for i in res["result"]:
-            table.append((i["title"], i["rank"], i["experience"], i["msg"]))
+            table.append(
+                (
+                    i["title"],
+                    i["rank"],
+                    i["exp"],
+                    i["score"],
+                    i["continute"],
+                    i["msg"],
+                )
+            )
 
         return [
             {
@@ -27,20 +36,32 @@ def handler(fn):
 
 
 class Weibo:
-    CHAOHUA_URL = "https://m.weibo.cn/api/container/getIndex"
-    CHECKIN_URL = "https://weibo.com/p/aj/general/button"
+    CHAOHUA_URL = "https://api.weibo.cn/2/cardlist"
+    CHECKIN_URL = "https://api.weibo.cn/2/page/button"
+    TASK_URL = "https://m.weibo.cn/c/checkin/ug/v2/signin/signin"
 
     # 获取用户信息
-    GROUP = "https://weibo.com/ajax/feed/allGroups"
-    INFO = "https://weibo.com/ajax/profile/info"
+    INFO = "https://api.weibo.cn/2/profile"
 
-    def __init__(self, sub) -> None:
-        self.cookie = f"SUB={sub}"
-        self.headers = {
-            "Cookie": self.cookie,
-            "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1",
-            "Referer": "https://m.weibo.cn/p/tabbar?containerid=100803_-_recentvisit&page_type=tabbar",
+    def __init__(self, *, gsid, from_, s, uid) -> None:
+        self.params = {
+            "gsid": gsid,  # 身份验证
+            "c": "android",  # 客户端校验
+            "from": from_,  # 客户端校验
+            "s": s,  # 校验参数
+            "lang": "zh_CN",
+            "networktype": "wifi",
+            "uid": uid,  # 用于获取用户信息
         }
+        self.headers = {
+            "Host": "api.weibo.cn",
+            "Connection": "keep-alive",
+            "Accept-Encoding": "gzip",
+            "content-type": "application/json;charset=utf-8",
+            "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X)",
+        }
+
+        self.cookie = ""
 
     # 获取超话列表
     def get_chaohua_List(self) -> list:
@@ -48,76 +69,81 @@ class Weibo:
         super_list = []
 
         print("开始获取超话列表".center(30, "#"))
-        while True:
-            try:
-                playload = {
+
+        try:
+            while True:
+                params = {
                     "containerid": "100803_-_followsuper",
+                    "fid": "100803_-_followsuper",
                     "since_id": since_id,
+                    "cout": 20,  # 一次请求最多 20 个超话(不写好像也只能获取 20 个)
                 }
+
+                params.update(self.params)
+
                 respJson = req.get(
                     Weibo.CHAOHUA_URL,
                     headers=self.headers,
-                    params=playload,
+                    params=params,
                 ).json()
 
                 # 获得超话数组
-                if respJson["ok"] == 1:
-                    for card in respJson["data"]["cards"]:
+                if "errno" not in respJson:
+                    for card in respJson["cards"]:
                         # 将获得的 card_group 进行解析, 去掉不必要的内容
                         list_ = Weibo.get_chaohua_item(card["card_group"])
                         super_list.extend(list_)
 
                     # 获取下一页 id
-                    since_id = respJson["data"]["cardlistInfo"]["since_id"]
+                    since_id = respJson["cardlistInfo"]["since_id"]
 
                     # 获取到空就是爬取完了
                     if since_id == "":
                         print("超话列表获取完毕".center(30, "#"))
                         break
                 else:
-                    print("超话列表为空".center(30, "#"))
-                    break
-            except json.JSONDecodeError:
-                print("sub 不对哦 😥 获取不到超话列表")
-                break
+                    raise Exception(respJson["errmsg"])
+        except Exception as e:
+            print(f"获取超话列表时出错, 原因: {e}")
+
         return super_list
 
-    # 根据超话列表获取单个超话 id
     @staticmethod
     def get_chaohua_item(card_group: list) -> list:
-        """[summary]
+        """[summary] 根据超话列表获取单个超话 id
 
-        Args:
-            card_group (list): 微博超话详细信息列表, 例如 [{
-                "card_type": "8",
-                "itemid": "follow_super_follow_1_9",
-                "scheme": "https://m.weibo.cn/p/index?containerid=1008088233e594e02a4d7a23ef5c28c19cb031&extparam=%E5%BB%BA%E7%AD%91%E9%92%A2%E7%AC%94%E7%94%BB%23tabbar_follow%3D4730360640833176&luicode=10000011&lfid=100803_-_followsuper",
-                "title_sub": "建筑钢笔画",
-                "pic": "https://ww4.sinaimg.cn/thumb180/41f8c78bjw1farmhj8scoj20e80a2tak.jpg",
-                "pic_corner_radius": 6,
-                "buttons": [
-                    {
-                        "type": "link",
-                        "pic": "https://h5.sinaimg.cn/upload/100/582/2020/04/14/super_register_button_disable_default.png",
-                        "name": "已签",
-                        "scheme": False,
-                    }
-                ],
-                "desc1": "等级 LV.9",
-                "desc2": "#建筑钢笔画[超话]# \u200b",
+        Args: card_group (list): 微博超话详细信息列表, 例如
+            [{
+                'card_type': '8',
+                'itemid': 'follow_super_follow_1_0',
+                'scheme': 'sinaweibo://pageinfo?containerid=100808b5abffe1359adcc70f8d6f38e60eea6e&extparam=%E7%B2%BE%E7%81%B5%E5%AE%9D%E5%8F%AF%E6%A2%A6%23tabbar_follow%3D4774056174031051',
+                'title_sub': '精灵宝可梦',
+                'pic': 'https://wx4.sinaimg.cn/thumbnail/c0448018gy1g07hid3wqmj20ro0rowk9.jpg',
+                'pic_corner_radius': 6,
+                'name_font_size': 15,
+                'pic_size': 58,
+                'buttons': [{
+                    'type': 'link',
+                    'pic': 'https://h5.sinaimg.cn/upload/100/582/2020/04/14/super_register_button_disable.png',
+                    'name': '已签'
+                }],
+                'desc1': '等级 LV.8',
+                'desc2': '#精灵宝可梦[超话]#lof那边让迷拟q回头的呼声太大所以追加了p2() \u200b',
+                'openurl': '',
+                'cleaned': True
             }, {...}]
 
-        Returns:
-            [list]: 精简后的超话信息, 例如 [{
-                "level": "LV.9",
-                "title": "建筑钢笔画",
-                "id": "1008088233e594e02a4d7a23ef5c28c19cb031"
+        Returns: [list]: 精简后的超话信息, 例如
+            [{
+                "level": "LV.8",
+                "title": "精灵宝可梦",
+                "id": "100808b5abffe1359adcc70f8d6f38e60eea6e"
             }, { ... }]
         """
         super_List = []
+
         for card in card_group:
             if card["card_type"] == "8":
-
                 # 获得超话链接
                 scheme = card["scheme"]
                 # 获得超话的 containerid
@@ -126,91 +152,121 @@ class Weibo:
                     scheme,
                 )
                 if len(cid) > 0:
-                    containerid = cid[0]
                     super_item = {
                         # 把 “等级 LV.9” 换成 “LV.9”
                         "level": re.findall(r"LV.\d", card["desc1"])[0],
                         "title": card["title_sub"],
-                        "id": containerid,
+                        "id": cid[0],
+                        "status": card["buttons"][0]["name"],  # "已签" or "签到"
                     }
                     super_List.append(super_item)
                     print(f"[超话]: {super_item['title']}, id={super_item['id']}")
+
         return super_List
 
     # 超话签到
     def chaohua_checkin(self, item: dict):
-        playload = {
-            "ajwvr": 6,
-            "api": "http://i.huati.weibo.com/aj/super/checkin",
-            "id": item["id"],
-            "location": f"page_{item['id'][0:6]}_super_index",
-            "timezone": "GMT 0800",
-            "lang": "zh-cn",
-            "plat": "Win32",
-            "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36 Edg/91.0.864.67",
-            "screen": "1280*720",
-            "__rnd": int(round(time.time() * 1000)),
-        }
-        headers = {
-            "cookie": self.cookie,
-            "user-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36 Edg/91.0.864.67",
-            "Referer": f"https://weibo.com/p/{item['id']}/super_index",
-            "sec-ch-ua": '"Not;A Brand";v="99", "Microsoft Edge";v="91", "Chromium";v="91"',
-        }
         try:
-            print(f"🐼 开始签到超话[{item['title']}]...")
-            respJson = req.get(
-                Weibo.CHECKIN_URL,
-                headers=headers,
-                params=playload,
-            ).json()
+            if item["status"] == "签到":
+                print(f"🎉开始签到超话: {item['title']}")
+                params = {
+                    "request_url": f"http://i.huati.weibo.com/mobile/super/active_checkin?pageid={item['id']}&in_page=1"
+                }
 
-            if "code" in respJson:
-                code = int(respJson["code"])
-                if code == 100000:
-                    rank = respJson["data"]["alert_title"]
-                    exp = respJson["data"]["alert_subtitle"]
+                params.update(self.params)
 
+                respJson = req.get(
+                    Weibo.CHECKIN_URL,
+                    headers=self.headers,
+                    params=params,
+                ).json()
+
+                if "errno" in respJson:
+                    raise Exception(respJson["errmsg"])
+                elif "error_msg" in respJson:
+                    raise Exception(respJson["error_msg"])
+                else:
                     msg = {
                         "status": True,
                         "msg": "签到成功",
+                        "rank": respJson["fun_data"]["check_count"],  # 第几个签到
+                        "score": respJson["fun_data"]["score"],  # 积分
+                        "exp": respJson["fun_data"]["int_ins"],  # 经验
+                        "continute": respJson["fun_data"]["check_int"],  # 连续签到
                         "title": item["title"],
-                        "rank": re.findall(r"\d+", rank)[0],  # 第几个签到
-                        "experience": re.findall(r"\d+", exp)[0],  # 经验
                     }
-
-                    print(
-                        f"🌟 话题[{item['title']}]签到成功, 第{msg['rank']}个签到, 获得{ msg['experience']}点经验"
-                    )
-
-                    return msg
-                elif code == 382004:
-                    msg = {
-                        "status": True,
-                        "msg": "今日已签到",
-                        "title": item["title"],
-                        "rank": "N/A",
-                        "experience": 0,
-                    }
-
-                    print(f"🍪 话题[{item['title']}]今日已签到")
-
-                    return msg
-                elif code == 382006:
-                    print(f"🤡 权限错误, 请尝试使用 sina.cn 下的 sub 重试")
-                    return {"status": False}
-                elif code == 402003:
-                    print(f"😭 系统繁忙, 请稍后重试")
-                    return {"status": False}
-                elif code == 100003:
-                    print(f"😡 最近行为异常")
-                    return {"status": False}
             else:
-                print(f"😭 签到失败, 未知原因")
-                return {"status": False}
-        except Exception as exp:
-            print(f"😭 签到时出现错误, 原因: {exp}")
-            return {"status": False}
+                msg = {
+                    "status": True,
+                    "msg": "已签到",
+                    "title": item["title"],
+                    "exp": "",
+                    "score": "",
+                    "continute": "",
+                    "rank": "",
+                }
+        except Exception as e:
+            msg = {
+                "status": False,
+                "msg": e,
+                "title": item["title"],
+            }
+
+        return msg
+
+    # 任务中心签到(暂时不知道cookie怎么获取...)
+    def task_checkin(self):
+        try:
+            headers = self.headers
+
+            headers.update(
+                {
+                    "Host": "m.weibo.cn",
+                    "Referer": f"https://m.weibo.cn/c/checkin?from={self.params['from']}&hash=sign",
+                    "Cookie": self.cookie,
+                }
+            )
+
+            respJson = req.get(
+                Weibo.TASK_URL,
+                headers=headers,
+                params=self.params,
+            ).json()
+
+            print(respJson)
+
+            if respJson["ok"] == 0:
+                raise Exception(respJson["msg"])
+            else:
+                sign_in = respJson["data"]["sign_in"]
+
+                if sign_in["show"] == 1:
+                    continue_ = sign_in["continue"]  # 连续签到天数
+                    value = sign_in["content"]["gift"]["points"]["value"]  # 签到积分
+
+                    return {
+                        "continue": continue_,
+                        "value": value,
+                    }
+        except Exception as e:
+            print(f"任务中心签到失败, 原因: {e}")
+
+    # 获取用户信息
+    def get_user_name(self):
+        try:
+            respJson = req.get(
+                Weibo.INFO,
+                params=self.params,
+                headers=self.headers,
+            ).json()
+
+            if "errno" in respJson:
+                raise Exception(respJson["errmsg"])
+            else:
+                self.name = respJson["userInfo"]["name"]
+        except Exception as e:
+            print(f"获取用户名时出错, 原因: {e}")
+            self.name = "获取失败"
 
     @handler
     def start(self):
@@ -225,7 +281,7 @@ class Weibo:
             msg = self.chaohua_checkin(item)
             if msg["status"]:
                 msg_list.append(msg)
-                time.sleep(1)
+                time.sleep(random.randint(1, 3))
             else:
                 break
 
@@ -233,33 +289,3 @@ class Weibo:
             "name": self.name,
             "result": msg_list,
         }
-
-    # 获取用户信息
-    def get_user_name(self):
-        try:
-            headers = {"cookie": self.cookie}
-            res = req.get(Weibo.GROUP, headers=headers).json()
-
-            uid = ""
-
-            for i in res["groups"]:
-                for j in i["group"]:
-                    uid = j["uid"]
-                    break
-
-            print(f"获取到用户的 uid: {uid}")
-
-            params = {"uid": uid}
-            res = req.get(Weibo.INFO, params=params, headers=headers).json()
-
-            if res["ok"] == 1:
-                name = res["data"]["user"]["screen_name"]
-            else:
-                name = "无"
-
-            self.name = name
-            print(f"获取到用户名: {name}")
-
-        except Exception as ex:
-            print(f"获取用户名时出错, 原因: {ex}")
-            self.name = "无"
