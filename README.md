@@ -19,3 +19,5 @@
    [![XueHvq.png](https://s1.ax1x.com/2022/05/28/XueHvq.png)](https://imgtu.com/i/XueHvq)
 
 4. 把 config.py 里提到的参数填进去即可
+
+5. 环境变量中填写推送服务的 key
