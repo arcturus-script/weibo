@@ -12,10 +12,10 @@
 
 2. 点击签到
 
-   [![Xuey8A.png](C:\Users\16383\Desktop\weibo_checkin\README.assets\Xuey8A.png)](https://imgtu.com/i/Xuey8A)
+   [![Xuey8A.png](https://s1.ax1x.com/2022/05/28/Xuey8A.png)](https://imgtu.com/i/Xuey8A)
 
-3. 找到响应的请求
+3. 找到相关的请求
 
-   [![XueHvq.png](C:\Users\16383\Desktop\weibo_checkin\README.assets\XueHvq.png)](https://imgtu.com/i/XueHvq)
+   [![XueHvq.png](https://s1.ax1x.com/2022/05/28/XueHvq.png)](https://imgtu.com/i/XueHvq)
 
 4. 把 config.py 里提到的参数填进去即可
