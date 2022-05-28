@@ -281,7 +281,7 @@ class Weibo:
             msg = self.chaohua_checkin(item)
             if msg["status"]:
                 msg_list.append(msg)
-                time.sleep(random.randint(1, 3))
+                time.sleep(random.randint(10, 15))
             else:
                 break
 
