@@ -10,9 +10,9 @@
 
 1. finder抓包, 详细教程看 [fiddler抓包mumu模拟器详细配置步骤](https://blog.csdn.net/weixin_41635750/article/details/117196839)
 
-2. 点击签到
+2. 进入超话列表
 
-   [![Xuey8A.png](https://s1.ax1x.com/2022/05/28/Xuey8A.png)](https://imgtu.com/i/Xuey8A)
+   [![XuuGCQ.png](https://s1.ax1x.com/2022/05/28/XuuGCQ.png)](https://imgtu.com/i/XuuGCQ)
 
 3. 找到相关的请求
 
