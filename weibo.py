@@ -210,6 +210,10 @@ class Weibo:
                 "status": False,
                 "msg": e,
                 "title": item["title"],
+                "exp": "",
+                "score": "",
+                "continute": "",
+                "rank": "",
             }
 
         return msg
@@ -275,15 +279,14 @@ class Weibo:
 
         # 获取超话列表
         chaohua_list = self.get_chaohua_List()
+        
+        print(f"共获取到{len(chaohua_list)}个超话")
 
         msg_list = []
         for item in chaohua_list:
             msg = self.chaohua_checkin(item)
-            if msg["status"]:
-                msg_list.append(msg)
-                time.sleep(random.randint(10, 15))
-            else:
-                break
+            msg_list.append(msg)
+            time.sleep(random.randint(10, 15))
 
         return {
             "name": self.name,
