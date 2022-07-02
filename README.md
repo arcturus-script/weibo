@@ -10,6 +10,8 @@
 
 1. finder抓包, 详细教程看 [fiddler抓包mumu模拟器详细配置步骤](https://blog.csdn.net/weixin_41635750/article/details/117196839)
 
+   安卓7将证书安装到系统 [Android 7.0+模拟器Fiddler抓包详细教程](https://blog.csdn.net/qq_43278826/article/details/124291040)
+
 2. 进入超话列表
 
    [![XuuGCQ.png](https://s1.ax1x.com/2022/05/28/XuuGCQ.png)](https://imgtu.com/i/XuuGCQ)
