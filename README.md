@@ -12,7 +12,7 @@
 
    安卓7将证书安装到系统 [Android 7.0+模拟器Fiddler抓包详细教程](https://blog.csdn.net/qq_43278826/article/details/124291040)
 
-2. 进入超话列表
+2. 进入超话列表（普通版微博, 不是国际版/轻享版）
 
    [![XuuGCQ.png](https://s1.ax1x.com/2022/05/28/XuuGCQ.png)](https://imgtu.com/i/XuuGCQ)
 
