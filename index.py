@@ -1,52 +1,65 @@
-from weibo import Weibo
+from weibo import weibo
 from config import config
-from push import PushSender, parse
+from push_tools import push_creator
+from dict2str import dict2str
 
 
-def parse_message(message, push_type):
-    if push_type == "pushplus":
-        return parse(message, template="html")
-    else:
-        return parse(message, template="markdown")
+def parse_message(message, msg_type):
+    print(dict2str(message, type=msg_type))
+    return str(dict2str(message, type=msg_type))
 
 
-def pushMessage(message, config):
-    if isinstance(config, list):
-        for item in config:
+def push_message(message, push_config):
+    if isinstance(push_config, list):
+
+        for item in push_config:
             t = item.get("type")
+            p = push_creator(t, item.get("key"))
+            m = item.get("msgtype") or item.get("template", "markdown")
 
-            p = PushSender(t, item.get("key"))
+            item.pop("type")
+            item.pop("key")
 
-            p.send(parse_message(message, t), title="微博超话")
+            msg = parse_message(message, m)
+            p.send(msg, title=message["title"], **item)
     else:
-        t = config.get("type")
+        t = push_config.get("type")
+        p = push_creator(t, push_config.get("key"))
+        m = push_config.get("msgtype") or push_config.get("template", "markdown")
 
-        p = PushSender(config.get("type"), config.get("key"))
+        push_config.pop("type")
+        push_config.pop("key")
 
-        p.send(parse_message(message, t), title="微博超话")
+        msg = parse_message(message["message"], m)
+        p.send(msg, title=message["title"], **push_config)
 
 
-def main(*args):
-    accounts = config.get("multi")
+def main(*_):
+    configs = config.get("multi")
     push_together = config.get("push")
 
     messages = []
 
-    for item in accounts:
-        obj = Weibo(**item)
+    for conf in configs:
+        obj = weibo(conf)
 
         res = obj.start()
 
-        push = item.get("push")
+        push = conf.get("push")
 
         if push is None:
             if push_together is not None:
-                messages.extend(res)
+                messages.append(res)
         else:
-            pushMessage(res, push)
+            push_message(res, push)
 
     if len(messages) != 0 and push_together is not None:
-        pushMessage(messages, push_together)
+        m = []
+        for msg in messages:
+            m.extend(msg["message"])
+
+        msg = {"title": messages[0]["title"], "message": m}
+        push_message(msg, push_together)
 
 
 if __name__ == "__main__":
