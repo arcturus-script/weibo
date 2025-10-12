@@ -130,7 +130,6 @@ class Weibo:
                 "rank": "",
             }
 
-    # 获取用户信息
     def update_user_info(self):
         headers = dict(self.session.headers)
         headers.update(
