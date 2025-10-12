@@ -1,201 +1,162 @@
 import requests as req
-import re
-import time
-import random
+import re, time, random
 
 
-# 过滤不必要的信息
-def filter(card_group):
-    _list = []
+class Weibo:
+    def __init__(self, cookie):
+        self.session = req.Session()
+        self.user_info = {}
+        self.session.cookies.update(cookie)
+        self.session.headers.update(
+            {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+                "Accept-Encoding": "gzip, deflate, br, zstd",
+                "upgrade-insecure-requests": "1",
+                "sec-ch-ua": '"Microsoft Edge";v="141", "Not?A_Brand";v="8", "Chromium";v="141"',
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": '"Windows"',
+                "sec-fetch-site": "cross-site",
+                "sec-fetch-mode": "navigate",
+                "sec-fetch-dest": "document",
+                "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+                "priority": "u=0, i",
+            }
+        )
 
-    for card in card_group:
-        if card["card_type"] == "8":
-            # container_id
-            cid = re.findall(
-                "(?<=containerid=).*?(?=&)|(?<=containerid=).*",
-                card["scheme"],
-            )
+    def update_cookie(self):
+        resp = self.session.get("https://weibo.com")
+        self.user_info["uid"] = resp.headers["x-log-uid"]
+        self.session.headers.update(
+            {
+                "x-xsrf-token": self.session.cookies["XSRF-TOKEN"],
+            }
+        )
 
-            if len(cid) > 0:
-                super_item = {
-                    "level": re.findall(r"LV.\d", card["desc1"])[0],
-                    "title": card["title_sub"],
-                    "id": cid[0],
-                    "status": card["buttons"][0]["name"],
-                }
+    def get_chaohua_list(self):
+        res = []
 
-                _list.append(super_item)
+        headers = dict(self.session.headers)
+        headers.update(
+            {
+                "referer": f"https://weibo.com/u/page/follow/{self.user_info['uid']}/231093_-_chaohua",
+            }
+        )
 
-    return _list
+        def get_one_page(page):
+            max_page = 0
+            params = {"tabid": "231093_-_chaohua", "page": page}
 
+            resp = self.session.get("https://weibo.com/ajax/profile/topicContent", params=params, headers=headers).json()
+            result = []
 
-class userInfo:
-    def __init__(self):
-        self.uid = ""
-        self.name = ""
-        self.location = ""
-        self.description = ""
-        self.cover_image = ""
+            if "ok" in resp and resp["ok"] == 1:
+                max_page = resp["data"]["max_page"]
+                chaohua = resp["data"]["list"]
+                for li in chaohua:
+                    result.append({"title": li["title"], "id": li["oid"].split(":")[1]})
 
-
-class weibo:
-    def __init__(self, conf):
-        self.info = userInfo()
-        self.info.uid = conf["uid"]
-
-        self.params = {
-            "gsid": conf["gsid"],  # 身份验证
-            "c": "android",  # 客户端校验
-            "from": conf["from"],  # 客户端校验
-            "s": conf["s"],  # 校验参数
-            "uid": conf["uid"],  # 用于获取用户信息
-        }
-
-        self.headers = {
-            "Host": "api.weibo.cn",
-            "Connection": "keep-alive",
-            "Accept-Encoding": "gzip",
-            "content-type": "application/json;charset=utf-8",
-            "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X)",
-            "Authorization": f"WB-SUT {conf['gsid']}",
-        }
-
-    # 获取超话列表
-    def get_chaohua_List(self) -> list:
-        since_id = ""
-        _list = []
+            return result, max_page
 
         try:
-            while True:
-                params = {
-                    "containerid": "100803_-_followsuper",
-                    "fid": "100803_-_followsuper",
-                    "since_id": since_id,
-                    "cout": 20,
-                }
+            result, max_page = get_one_page(1)
+            res.extend(result)
 
-                params.update(self.params)
-
-                respJson = req.get(
-                    "https://api.weibo.cn/2/cardlist",
-                    headers=self.headers,
-                    params=params,
-                ).json()
-
-                # 获得超话数组
-                if "errno" not in respJson:
-                    for card in respJson["cards"]:
-                        li = filter(card["card_group"])
-                        _list.extend(li)
-
-                    # 获取下一页 id
-                    since_id = respJson["cardlistInfo"]["since_id"]
-
-                    # 获取到空就是爬取完了
-                    if since_id == "":
-                        print("超话列表获取完毕")
-                        for i in _list:
-                            print(f"{i['title']}: {i['id']}")
-                        break
-                else:
-                    raise Exception(respJson["errmsg"])
+            for p in range(2, max_page + 1):
+                result, _ = get_one_page(p)
+                res.extend(result)
         except Exception as e:
             print(f"获取超话列表时出错, 原因: {e}")
 
-        return _list
+        return res
 
-    # 超话签到
-    def chaohua_checkin(self, item: dict):
+    def chaohua_checkin(self, id, title):
+        print(f"正在签到超话: {title} ...")
+
         try:
-            if item["status"] == "签到":
-                params = {
-                    "request_url": f"http://i.huati.weibo.com/mobile/super/active_checkin?pageid={item['id']}&&sg_tab_config=2&in_page=1"
+            url = "https://weibo.com/p/aj/general/button"
+
+            headers = dict(self.session.headers)
+            headers.update(
+                {
+                    "referer": f"https://weibo.com/p/{id}/super_index",
                 }
+            )
 
-                params.update(self.params)
+            params = {
+                "ajwvr": "6",
+                "api": "http://i.huati.weibo.com/aj/super/checkin",
+                "texta": "签到",
+                "textb": "已签到",
+                "status": "0",
+                "id": id,
+                "location": "page_100808_super_index",
+                "timezone": "GMT+0800",
+                "lang": "zh-cn",
+                "plat": "Win32",
+                "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0",
+                "screen": "2560*1440",
+                "__rnd": str(int(time.time() * 1000)),
+            }
 
-                respJson = req.get(
-                    "https://api.weibo.cn/2/page/button",
-                    headers=self.headers,
-                    params=params,
-                ).json()
+            resp = self.session.get(url, params=params).json()
 
-                if "errno" in respJson:
-                    raise Exception(respJson["errmsg"])
-                else:
-                    print(f"[success] {item['title']}")
+            if "code" in resp:
+                if str(resp["code"]) == "100000":
+                    print(f"签到结果: {resp['data']['tipMessage']}")
 
                     return {
-                        "status": True,
-                        "msg": "签到成功",
-                        "rank": respJson["fun_data"]["check_count"],  # 第几个签到
-                        "score": respJson["fun_data"]["score"],  # 积分
-                        "exp": respJson["fun_data"]["int_ins"],  # 经验
-                        "continute": respJson["fun_data"]["check_int"],  # 连续签到
-                        "title": item["title"],
+                        "title": title,
+                        "message": resp["data"]["tipMessage"],
+                        "experience": str(re.search(r"\d+", resp["data"]["tipMessage"]).group(0)),  # type: ignore
+                        "rank": str(re.search(r"\d+", resp["data"]["alert_title"]).group(0)),  # type: ignore
                     }
-            else:
-                print(f"[success] {item['title']}")
+                elif str(resp["code"]) == "382004":
+                    print(f"签到结果: {resp['msg']}")
 
-                return {
-                    "status": False,
-                    "msg": "已签到",
-                    "title": item["title"],
-                }
+                    return {
+                        "title": title,
+                        "message": resp["msg"],
+                        "experience": "",
+                        "rank": "",
+                    }
 
         except Exception as e:
+            print(f"超话签到失败, 原因: {e}")
             return {
-                "status": False,
-                "msg": e,
-                "title": item["title"],
+                "title": title,
+                "message": "签到失败",
+                "experience": "",
+                "rank": "",
             }
 
     # 获取用户信息
     def update_user_info(self):
-        url = "https://api.weibo.cn/2/profile"
-        respJson = req.get(url, params=self.params, headers=self.headers).json()
-        user_info = respJson["userInfo"]
+        headers = dict(self.session.headers)
+        headers.update(
+            {
+                "referer": f"https://weibo.com/u/{self.user_info['uid']}",
+            }
+        )
+        resp = self.session.get(f"https://weibo.com/ajax/profile/info?uid={self.user_info['uid']}", headers=headers).json()
 
-        self.info.name = user_info["name"]
-        self.info.location = user_info["location"]
-        self.info.description = user_info["description"]
-        self.info.cover_image = user_info["cover_image"]
+        if "ok" in resp and resp["ok"] == 1:
+            user = resp["data"]["user"]
+            self.user_info.update(
+                {
+                    "name": user["screen_name"],
+                    "location": user["location"],
+                    "description": user["description"],
+                }
+            )
 
     def start(self):
+        self.update_cookie()
         self.update_user_info()
-
-        # 获取超话列表
-        chaohua_list = self.get_chaohua_List()
+        chaohua_list = self.get_chaohua_list()
 
         messages = []
         for item in chaohua_list:
-            time.sleep(random.randint(5, 10))
-            res = self.chaohua_checkin(item)
+            time.sleep(random.randint(1, 3))
+            res = self.chaohua_checkin(item["id"], item["title"])
             messages.append(res)
-
-        table = [("超话", "排名", "经验", "积分", "连续天数", "结果")]
-
-        for msg in messages:
-            if msg["status"]:
-                el = (
-                    msg["title"],
-                    msg["rank"],
-                    msg["exp"],
-                    msg["score"],
-                    msg["continute"],
-                    msg["msg"],
-                )
-            else:
-                el = (msg["title"], "", "", "", "", msg["msg"])
-
-            table.append(el)
-
-        return {
-            "title": "微博超话签到",
-            "message": [
-                {
-                    "txt": {"content": f"用户名: {self.info.name}", "end": "\n\n"},
-                    "table": {"contents": table, "end": "\n\n"},
-                }
-            ],
-        }
